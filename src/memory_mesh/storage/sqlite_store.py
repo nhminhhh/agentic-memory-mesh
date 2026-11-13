@@ -14,9 +14,15 @@ class SQLiteMemoryStore:
 
     def __init__(self, db_path: str | Path = ":memory:"):
         self.db_path = str(db_path)
+        self._shared_conn: Optional[sqlite3.Connection] = None
+        if self.db_path == ":memory:":
+            self._shared_conn = sqlite3.connect(":memory:")
+            self._shared_conn.row_factory = sqlite3.Row
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
+        if self._shared_conn is not None:
+            return self._shared_conn
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
