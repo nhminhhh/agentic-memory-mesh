@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentic-memory-mesh"
+version = "0.1.0"
+description = "Graph-Augmented Episodic & Semantic Memory Engine for Autonomous LLM Agents: Temporal Decay, Entity-Relation Linking, and Spreading Activation Retrieval."
+readme = "README.md"
+authors = [
+  { name = "nhminhhh", email = "nhatminhn649@gmail.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2.5.0",
+  "typing-extensions>=4.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-asyncio>=0.21.0",
+]
+
+[project.scripts]
+memory-mesh = "memory_mesh.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
