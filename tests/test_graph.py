@@ -1,4 +1,7 @@
+import tempfile
+from pathlib import Path
 from memory_mesh.graph.store import KnowledgeGraphStore
+from memory_mesh.graph.visualizer import GraphVisualizer
 
 
 def test_knowledge_graph_upsert_and_relations():
@@ -38,3 +41,19 @@ def test_find_entities_in_text():
 
     assert "docker" in found_ids
     assert "postgresql" in found_ids
+
+
+def test_graph_visualizer():
+    graph = KnowledgeGraphStore()
+    graph.add_relation("Alice", "Bob", relation="COLLABORATES_WITH")
+    
+    mermaid_str = GraphVisualizer.to_mermaid(graph)
+    assert "flowchart LR" in mermaid_str
+    assert "Alice" in mermaid_str
+    assert "COLLABORATES_WITH" in mermaid_str
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        html_file = Path(tmp_dir) / "graph.html"
+        GraphVisualizer.to_interactive_html(graph, html_file)
+        assert html_file.exists()
+        assert "vis.Network" in html_file.read_text(encoding="utf-8")

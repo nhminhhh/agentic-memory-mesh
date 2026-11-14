@@ -33,6 +33,12 @@ def main():
     # Consolidate command
     subparsers.add_parser("consolidate", help="Consolidate working buffer and prune decayed memories")
 
+    # Export commands
+    export_html_p = subparsers.add_parser("export-html", help="Export interactive HTML graph visualizer")
+    export_html_p.add_argument("--output", type=str, default="memory_graph.html", help="Output file path")
+
+    export_mermaid_p = subparsers.add_parser("export-mermaid", help="Print Mermaid flowchart diagram syntax")
+
     args = parser.parse_args()
     engine = MemoryMeshEngine(storage_path=args.db)
 
@@ -63,6 +69,15 @@ def main():
         print("\nMemory Consolidation Complete:")
         for k, v in res.items():
             print(f"  - {k}: {v}")
+
+    elif args.command == "export-html":
+        from memory_mesh.graph.visualizer import GraphVisualizer
+        out = GraphVisualizer.to_interactive_html(engine.graph, args.output)
+        print(f"✓ Interactive graph visualization exported to: {out}")
+
+    elif args.command == "export-mermaid":
+        from memory_mesh.graph.visualizer import GraphVisualizer
+        print(GraphVisualizer.to_mermaid(engine.graph))
 
 
 if __name__ == "__main__":
