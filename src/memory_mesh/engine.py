@@ -9,6 +9,7 @@ from memory_mesh.core.decay import EbbinghausDecayModel
 from memory_mesh.core.types import EntityNode, MemoryEpisode, RetrievalResult
 from memory_mesh.extraction.extractor import EntityRelationExtractor
 from memory_mesh.graph.store import KnowledgeGraphStore
+from memory_mesh.reflection.synthesizer import CognitiveReflector, ReflectiveInsight
 from memory_mesh.retrieval.ranker import MemoryRanker
 from memory_mesh.retrieval.spreading_activation import SpreadingActivationEngine
 from memory_mesh.storage.sqlite_store import SQLiteMemoryStore
@@ -33,6 +34,7 @@ class MemoryMeshEngine:
         self.decay_model = EbbinghausDecayModel(default_half_life_hours=default_half_life_hours)
         self.spreading_engine = SpreadingActivationEngine(decay_factor=spreading_decay)
         self.ranker = MemoryRanker(decay_model=self.decay_model)
+        self.reflector = CognitiveReflector()
         self.working_buffer: List[MemoryEpisode] = []
 
     def ingest(
@@ -152,6 +154,26 @@ class MemoryMeshEngine:
             "pruned_episodes": pruned_count,
             "retained_episodes": len(self.episodes),
         }
+
+    def reflect(self) -> List[MemoryEpisode]:
+        """Synthesizes high-order reflections from episodic memories and registers them as persistent beliefs."""
+        insights = self.reflector.reflect_on_episodes(self.episodes)
+        synthesized_episodes: List[MemoryEpisode] = []
+
+        for insight in insights:
+            ep = self.ingest(
+                content=insight.statement,
+                importance=0.9,
+                entities=insight.salient_entities,
+                metadata={
+                    "is_reflection": True,
+                    "confidence": insight.confidence,
+                    "evidence_episode_ids": insight.evidence_episode_ids,
+                },
+            )
+            synthesized_episodes.append(ep)
+
+        return synthesized_episodes
 
     def stats(self) -> Dict[str, Any]:
         return {
