@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from memory_mesh.core.decay import EbbinghausDecayModel
 from memory_mesh.core.types import EntityNode, MemoryEpisode, RetrievalResult
+from memory_mesh.extraction.extractor import EntityRelationExtractor
 from memory_mesh.graph.store import KnowledgeGraphStore
 from memory_mesh.retrieval.ranker import MemoryRanker
 from memory_mesh.retrieval.spreading_activation import SpreadingActivationEngine
@@ -44,6 +45,18 @@ class MemoryMeshEngine:
     ) -> MemoryEpisode:
         """Stores an experience into episodic memory and integrates detected entities into graph."""
         detected_entities = list(entities or [])
+        extracted_relations = list(relations or [])
+
+        # Auto-extract entities and relations if not explicitly provided
+        if not entities:
+            auto_ents = EntityRelationExtractor.extract_entities(content)
+            for e in auto_ents:
+                if e not in detected_entities:
+                    detected_entities.append(e)
+
+        if not relations:
+            auto_rels = EntityRelationExtractor.extract_relations(content)
+            extracted_relations.extend(auto_rels)
 
         # Auto-detect entities already in the graph
         matched_in_text = self.graph.find_entities_in_text(content)
@@ -55,9 +68,9 @@ class MemoryMeshEngine:
         for ent_name in detected_entities:
             self.graph.upsert_entity(ent_name, importance=importance)
 
-        # Register explicitly provided relations (source, target, relation_name)
-        if relations:
-            for src, tgt, rel in relations:
+        # Register relations (source, target, relation_name)
+        if extracted_relations:
+            for src, tgt, rel in extracted_relations:
                 self.graph.add_relation(src, tgt, relation=rel)
 
         # Cross-link co-occurring entities in this episode
