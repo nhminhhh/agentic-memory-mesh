@@ -33,6 +33,11 @@ def main():
     # Consolidate command
     subparsers.add_parser("consolidate", help="Consolidate working buffer and prune decayed memories")
 
+    # Serve command
+    serve_p = subparsers.add_parser("serve", help="Launch HTTP REST API server")
+    serve_p.add_argument("--host", type=str, default="127.0.0.1", help="Host address")
+    serve_p.add_argument("--port", type=int, default=8000, help="Port number")
+
     # Export commands
     export_html_p = subparsers.add_parser("export-html", help="Export interactive HTML graph visualizer")
     export_html_p.add_argument("--output", type=str, default="memory_graph.html", help="Output file path")
@@ -69,6 +74,15 @@ def main():
         print("\nMemory Consolidation Complete:")
         for k, v in res.items():
             print(f"  - {k}: {v}")
+
+    elif args.command == "serve":
+        from memory_mesh.server import create_server
+        server = create_server(host=args.host, port=args.port, engine=engine)
+        print(f"🚀 MemoryMesh REST API running at http://{args.host}:{args.port}")
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\nShutting down server...")
 
     elif args.command == "export-html":
         from memory_mesh.graph.visualizer import GraphVisualizer
