@@ -12,13 +12,13 @@ def normalize_id(name: str) -> str:
 
 
 class KnowledgeGraphStore:
-    """In-memory Knowledge Graph representation optimized for fast associative memory traversals."""
+    """In-memory Multigraph Knowledge Graph representation optimized for fast associative memory traversals."""
 
     def __init__(self):
         self.nodes: Dict[str, EntityNode] = {}
         self.edges: Dict[str, RelationEdge] = {}
-        self._adjacency: Dict[str, Dict[str, str]] = {}  # source_id -> target_id -> edge_key
-        self._reverse_adjacency: Dict[str, Dict[str, str]] = {}
+        self._adjacency: Dict[str, Dict[str, Set[str]]] = {}  # source_id -> target_id -> Set[edge_key]
+        self._reverse_adjacency: Dict[str, Dict[str, Set[str]]] = {}
 
     def upsert_entity(
         self,
@@ -67,7 +67,6 @@ class KnowledgeGraphStore:
         if edge_key in self.edges:
             edge = self.edges[edge_key]
             edge.co_occurrence_count += 1
-            # Strengthen relation weight on repeated co-occurrence (capped at 5.0)
             edge.weight = min(5.0, round(edge.weight + 0.25, 3))
             edge.last_reinforced_at = datetime.now(timezone.utc)
             return edge
@@ -80,8 +79,8 @@ class KnowledgeGraphStore:
             co_occurrence_count=1,
         )
         self.edges[edge_key] = edge
-        self._adjacency.setdefault(src_node.id, {})[tgt_node.id] = edge_key
-        self._reverse_adjacency.setdefault(tgt_node.id, {})[src_node.id] = edge_key
+        self._adjacency.setdefault(src_node.id, {}).setdefault(tgt_node.id, set()).add(edge_key)
+        self._reverse_adjacency.setdefault(tgt_node.id, {}).setdefault(src_node.id, set()).add(edge_key)
         return edge
 
     def get_neighbors(self, node_id: str, bidirectional: bool = True) -> List[Tuple[EntityNode, RelationEdge]]:
@@ -90,15 +89,19 @@ class KnowledgeGraphStore:
             return results
 
         # Outgoing edges
-        for tgt_id, edge_key in self._adjacency.get(node_id, {}).items():
-            if tgt_id in self.nodes and edge_key in self.edges:
-                results.append((self.nodes[tgt_id], self.edges[edge_key]))
+        for tgt_id, edge_keys in self._adjacency.get(node_id, {}).items():
+            if tgt_id in self.nodes:
+                for edge_key in edge_keys:
+                    if edge_key in self.edges:
+                        results.append((self.nodes[tgt_id], self.edges[edge_key]))
 
         # Incoming edges if bidirectional
         if bidirectional:
-            for src_id, edge_key in self._reverse_adjacency.get(node_id, {}).items():
-                if src_id in self.nodes and edge_key in self.edges:
-                    results.append((self.nodes[src_id], self.edges[edge_key]))
+            for src_id, edge_keys in self._reverse_adjacency.get(node_id, {}).items():
+                if src_id in self.nodes:
+                    for edge_key in edge_keys:
+                        if edge_key in self.edges:
+                            results.append((self.nodes[src_id], self.edges[edge_key]))
 
         return results
 
@@ -130,7 +133,7 @@ class KnowledgeGraphStore:
         for e_data in data.get("edges", []):
             edge = RelationEdge.model_validate(e_data)
             store.edges[edge.edge_key] = edge
-            store._adjacency.setdefault(edge.source_id, {})[edge.target_id] = edge.edge_key
-            store._reverse_adjacency.setdefault(edge.target_id, {})[edge.source_id] = edge.edge_key
+            store._adjacency.setdefault(edge.source_id, {}).setdefault(edge.target_id, set()).add(edge.edge_key)
+            store._reverse_adjacency.setdefault(edge.target_id, {}).setdefault(edge.source_id, set()).add(edge.edge_key)
 
         return store

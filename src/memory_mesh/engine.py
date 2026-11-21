@@ -9,6 +9,7 @@ from memory_mesh.core.decay import EbbinghausDecayModel
 from memory_mesh.core.types import EntityNode, MemoryEpisode, RetrievalResult
 from memory_mesh.extraction.extractor import EntityRelationExtractor
 from memory_mesh.graph.store import KnowledgeGraphStore
+from memory_mesh.reasoning.belief_revision import BeliefRevisionEngine, ContradictionReport
 from memory_mesh.reflection.synthesizer import CognitiveReflector, ReflectiveInsight
 from memory_mesh.retrieval.ranker import MemoryRanker
 from memory_mesh.retrieval.spreading_activation import SpreadingActivationEngine
@@ -35,6 +36,7 @@ class MemoryMeshEngine:
         self.spreading_engine = SpreadingActivationEngine(decay_factor=spreading_decay)
         self.ranker = MemoryRanker(decay_model=self.decay_model)
         self.reflector = CognitiveReflector()
+        self.belief_reviser = BeliefRevisionEngine()
         self.working_buffer: List[MemoryEpisode] = []
 
     def ingest(
@@ -70,10 +72,11 @@ class MemoryMeshEngine:
         for ent_name in detected_entities:
             self.graph.upsert_entity(ent_name, importance=importance)
 
-        # Register relations (source, target, relation_name)
+        # Check and revise contradictions for mutually exclusive relations
         if extracted_relations:
-            for src, tgt, rel in extracted_relations:
-                self.graph.add_relation(src, tgt, relation=rel)
+            for rel in extracted_relations:
+                self.belief_reviser.check_and_revise(rel, self.graph, self.episodes)
+                self.graph.add_relation(rel[0], rel[1], relation=rel[2])
 
         # Cross-link co-occurring entities in this episode
         for i in range(len(detected_entities)):

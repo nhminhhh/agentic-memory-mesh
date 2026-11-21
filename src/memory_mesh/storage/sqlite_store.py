@@ -163,7 +163,7 @@ class SQLiteMemoryStore:
                     last_reinforced_at=datetime.fromisoformat(row["last_reinforced_at"]),
                 )
                 graph.edges[edge.edge_key] = edge
-                graph._adjacency.setdefault(edge.source_id, {})[edge.target_id] = edge.edge_key
-                graph._reverse_adjacency.setdefault(edge.target_id, {})[edge.source_id] = edge.edge_key
+                graph._adjacency.setdefault(edge.source_id, {}).setdefault(edge.target_id, set()).add(edge.edge_key)
+                graph._reverse_adjacency.setdefault(edge.target_id, {}).setdefault(edge.source_id, set()).add(edge.edge_key)
 
         return graph
