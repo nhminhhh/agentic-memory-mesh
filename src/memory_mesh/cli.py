@@ -44,6 +44,12 @@ def main():
 
     export_mermaid_p = subparsers.add_parser("export-mermaid", help="Print Mermaid flowchart diagram syntax")
 
+    export_cypher_p = subparsers.add_parser("export-cypher", help="Export Neo4j Cypher ingestion script")
+    export_cypher_p.add_argument("--output", type=str, default="graph.cql", help="Output file path")
+
+    export_gexf_p = subparsers.add_parser("export-gexf", help="Export Gephi GEXF graph file")
+    export_gexf_p.add_argument("--output", type=str, default="graph.gexf", help="Output file path")
+
     args = parser.parse_args()
     engine = MemoryMeshEngine(storage_path=args.db)
 
@@ -92,6 +98,16 @@ def main():
     elif args.command == "export-mermaid":
         from memory_mesh.graph.visualizer import GraphVisualizer
         print(GraphVisualizer.to_mermaid(engine.graph))
+
+    elif args.command == "export-cypher":
+        from memory_mesh.storage.migration import MemoryMigrationToolkit
+        MemoryMigrationToolkit.export_neo4j_cypher(engine.graph, args.output)
+        print(f"✓ Neo4j Cypher script exported to: {args.output}")
+
+    elif args.command == "export-gexf":
+        from memory_mesh.storage.migration import MemoryMigrationToolkit
+        MemoryMigrationToolkit.export_gephi_gexf(engine.graph, args.output)
+        print(f"✓ Gephi GEXF graph exported to: {args.output}")
 
 
 if __name__ == "__main__":
