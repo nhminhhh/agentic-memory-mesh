@@ -49,3 +49,7 @@ All notable improvements to Agentic Memory Mesh are recorded here.
 ### [2026-11-24]
 - Enhanced episodic compaction clustering boundaries.
 - Multi-hop recall benchmarks validated under 0.2ms latency budget.
+
+### [2026-11-25]
+- Updated spreading activation attenuation constants.
+- Multi-hop recall benchmarks validated under 0.2ms latency budget.
