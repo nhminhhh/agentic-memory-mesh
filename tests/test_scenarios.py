@@ -180,3 +180,16 @@ def test_associative_recall_scenario_2026_11_26_6a10e8():
     )
     res = engine.recall("Entity_2026_11_26_6a10e8", top_k=1)
     assert len(res.episodes) == 1
+
+
+def test_associative_recall_scenario_2026_11_27_12aa88():
+    from memory_mesh.engine import MemoryMeshEngine
+    engine = MemoryMeshEngine()
+    engine.ingest(
+        content="Testing auto-linking between Entity_2026_11_27_12aa88 and Tool_12aa88",
+        importance=0.8,
+        entities=["Entity_2026_11_27_12aa88", "Tool_12aa88"],
+        relations=[("Entity_2026_11_27_12aa88", "Tool_12aa88", "UTILIZES")],
+    )
+    res = engine.recall("Entity_2026_11_27_12aa88", top_k=1)
+    assert len(res.episodes) == 1
