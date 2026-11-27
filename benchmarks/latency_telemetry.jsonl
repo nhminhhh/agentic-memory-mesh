@@ -12,3 +12,4 @@
 {"benchmark_id": "mesh_bench_fb94a240", "date": "2026-11-24", "timestamp": "2026-11-24T13:00:07.391474+00:00", "hop_1_latency_ms": 0.236, "hop_2_latency_ms": 0.156, "hop_3_latency_ms": 0.117, "qps_throughput": 11732.2}
 {"benchmark_id": "mesh_bench_e205e692", "date": "2026-11-25", "timestamp": "2026-11-25T13:00:08.697899+00:00", "hop_1_latency_ms": 0.242, "hop_2_latency_ms": 0.126, "hop_3_latency_ms": 0.121, "qps_throughput": 11508.1}
 {"benchmark_id": "mesh_bench_74e98cb1", "date": "2026-11-26", "timestamp": "2026-11-26T13:00:06.202903+00:00", "hop_1_latency_ms": 0.181, "hop_2_latency_ms": 0.131, "hop_3_latency_ms": 0.135, "qps_throughput": 12306.8}
+{"benchmark_id": "mesh_bench_2f6990ae", "date": "2026-11-27", "timestamp": "2026-11-27T14:32:06.382470+00:00", "hop_1_latency_ms": 0.222, "hop_2_latency_ms": 0.139, "hop_3_latency_ms": 0.145, "qps_throughput": 12634.2}
